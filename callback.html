@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head><title>TheCrate — connecting...</title>
+<style>body{background:#060d06;color:#8aaa88;font-family:'DM Mono',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;font-size:13px;letter-spacing:.08em;gap:12px}</style>
+</head>
+<body>
+<div>connecting spotify<span id="dots">.</span></div>
+<div id="status" style="font-size:10px;color:#4a6a4a"></div>
+<script>
+setInterval(()=>{const d=document.getElementById('dots');d.textContent=d.textContent.length<3?d.textContent+'.':'.'},400);
+const st = document.getElementById('status');
+const params = new URLSearchParams(window.location.search);
+const code = params.get('code');
+const error = params.get('error');
+
+if (error) {
+  document.body.innerHTML = '<div style="color:#ff3b1f">spotify error: ' + error + ' — <a href="/" style="color:#7fff00">go back</a></div>';
+} else if (code) {
+  const verifier = localStorage.getItem('spotify_verifier');
+  const clientId = localStorage.getItem('spotify_client_id') || '';
+  st.textContent = 'exchanging code...';
+  fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: window.location.origin + '/callback.html',
+      code_verifier: verifier,
+    }).toString()
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.access_token) {
+      localStorage.setItem('spotify_token', data.access_token);
+      localStorage.setItem('spotify_expiry', Date.now() + (data.expires_in * 1000));
+      if (data.refresh_token) localStorage.setItem('spotify_refresh', data.refresh_token);
+      localStorage.removeItem('spotify_verifier');
+      st.textContent = 'connected! redirecting...';
+      setTimeout(() => window.location.replace('/'), 300);
+    } else {
+      document.body.innerHTML = '<div style="color:#ff3b1f">token error: ' + JSON.stringify(data) + ' — <a href="/" style="color:#7fff00">go back</a></div>';
+    }
+  })
+  .catch(e => {
+    document.body.innerHTML = '<div style="color:#ff3b1f">fetch error: ' + e.message + ' — <a href="/" style="color:#7fff00">go back</a></div>';
+  });
+} else {
+  document.body.innerHTML = '<div style="color:#ff3b1f">no code returned — <a href="/" style="color:#7fff00">go back</a></div>';
+}
+</script>
+</body>
+</html>

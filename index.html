@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Crate</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --chassis:#060d06; --surface:#0a0f0a; --raised:#111811; --card:#060d06;
+  --border:#142014; --border2:#1e2e1e;
+  --teal:#7fff00; --teal-dim:#7fff0018; --teal-mid:#7fff0044;
+  --red:#ff3b1f; --red-dim:#ff3b1f18;
+  --amber:#c8922a; --amber-dim:#c8922a22;
+  --text:#d0e8d0; --muted:#8aaa88; --hint:#142014;
+  --chrome:#8aaa88;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Syne',sans-serif;background:var(--chassis);color:var(--text);font-size:14px;overflow:hidden}
+
+/* ── NAV ── */
+nav{height:52px;background:var(--chassis);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:24px;flex-shrink:0;overflow:visible}
+.logo{font-size:16px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.logo-teal{color:var(--teal)}
+.logo-red{color:var(--red)}
+.nav-tabs{display:flex;gap:2px;margin-left:8px}
+.ntab{padding:5px 14px;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all .15s;position:relative}
+.ntab:hover{color:var(--text)}
+.ntab.on{color:var(--teal)}
+.ntab.on::after{content:'';position:absolute;bottom:-1px;left:14px;right:14px;height:1px;background:var(--teal)}
+.hype-pip{display:inline-block;background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;font-family:'DM Mono',monospace;vertical-align:middle}
+.nav-leds{display:flex;gap:5px;margin-left:auto;align-items:center}
+.led{width:6px;height:6px;border-radius:50%}
+.led-teal{background:var(--teal)}
+.led-red{background:var(--red)}
+.led-off{background:var(--border)}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:calc(100vh - 52px);overflow:hidden}
+aside{width:188px;flex-shrink:0;background:var(--chassis);border-right:1px solid var(--border);overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:20px}
+.s-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--chrome);padding-bottom:6px;border-bottom:1px solid var(--chrome)44}
+.era-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;transition:background .12s}
+.era-item:hover{background:var(--raised)}
+.era-item.on{background:var(--teal-dim)}
+.era-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .12s}
+.era-item.on .era-dot{background:var(--teal)}
+.era-name{font-size:12px;color:var(--muted)}
+.era-item.on .era-name{color:var(--teal);font-weight:600}
+.era-ct{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;color:var(--hint)}
+.g-row{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted);padding:3px 2px;transition:color .12s;font-family:'DM Mono',monospace;letter-spacing:.04em}
+.g-row:hover{color:var(--text)}
+.g-row input{display:none}
+.cbox{width:12px;height:12px;border:1px solid var(--border2);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.g-row input:checked~.cbox{background:var(--teal);border-color:var(--teal)}
+.cmark{display:none;color:var(--chassis);font-size:9px;font-weight:700;line-height:1}
+.g-row input:checked~.cbox .cmark{display:block}
+.sort-item{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:4px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--muted);transition:all .12s}
+.sort-item:hover{color:var(--text);background:var(--raised)}
+.sort-item.on{color:var(--teal)}
+
+/* ── MAIN ── */
+main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.main-bar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0;background:var(--chassis)}
+.era-title{font-size:13px;font-weight:700;letter-spacing:-.01em;flex:1}
+.era-title span{color:var(--teal)}
+.res-ct{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
+.search-wrap{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:5px;overflow:hidden;transition:border-color .15s}
+.search-wrap:focus-within{border-color:var(--teal)}
+.search-wrap input{background:transparent;border:none;outline:none;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);padding:6px 12px;width:180px;letter-spacing:.04em}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{padding:6px 10px;color:var(--muted);font-size:12px}
+
+/* ── GRID ── */
+.grid{flex:1;overflow-y:auto;padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px;align-content:start}
+.rcard{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--chrome);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .18s;display:flex;flex-direction:column}
+.rcard:hover{border-color:var(--teal);border-top-color:var(--teal);transform:translateY(-2px)}
+.art{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative;background:var(--raised)}
+.art-vinyl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.07}
+.art-vinyl svg{width:70%;height:70%}
+.badge-pop{position:absolute;top:7px;left:7px;background:var(--red);color:#fff;font-family:'DM Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500}
+.badge-vinyl{position:absolute;top:7px;right:7px;background:var(--chassis);color:var(--teal);font-family:'DM Mono',monospace;font-size:8px;padding:2px 5px;border-radius:3px;letter-spacing:.06em;border:1px solid var(--teal-mid)}
+.cbody{padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border)}
+.c-artist{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-title{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c-meta{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+.c-year{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
+.c-genre{background:var(--teal-dim);color:var(--teal);font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:20px}
+.pop-bar{height:2px;background:var(--hint);border-radius:1px;overflow:hidden;margin-top:6px}
+.pop-fill{height:100%;border-radius:1px;transition:width .5s ease}
+.vote-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--border);background:var(--raised)}
+.upvote-btn{display:flex;align-items:center;gap:4px;background:var(--red-dim);border:1px solid transparent;border-radius:4px;padding:3px 9px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;color:var(--red);transition:all .15s;font-weight:500}
+.upvote-btn:hover{border-color:var(--red);background:var(--red-dim)}
+.upvote-btn.voted{background:var(--red);color:#fff}
+.star-row{display:flex;gap:2px}
+.star{font-size:11px;cursor:pointer;color:var(--border2);transition:color .12s;line-height:1}
+.star.lit{color:var(--amber)}
+
+/* ── HYPE TABLE ── */
+.hype-wrap{flex:1;overflow-y:auto;padding:20px}
+.hype-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.hype-title{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.hype-title span{color:var(--red)}
+.period-tabs{display:flex;gap:4px;margin-left:auto}
+.ptab{padding:4px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--muted);border:1px solid var(--border);background:transparent;transition:all .12s}
+.ptab:hover{color:var(--text);border-color:var(--border2)}
+.ptab.on{color:var(--red);border-color:var(--red);background:var(--red-dim)}
+.hype-table{width:100%;border-collapse:collapse}
+.hype-table th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--chrome);padding:6px 14px;text-align:left;border-bottom:1px solid var(--chrome)44;font-weight:400}
+.hype-table th:last-child{text-align:right}
+.hype-table td{padding:0}
+.h-row{border-bottom:1px solid var(--hint);transition:background .12s;cursor:pointer}
+.h-row:hover{background:var(--raised)}
+.h-row td{padding:10px 14px;vertical-align:middle}
+.h-rank{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--hint);width:48px}
+.h-rank.top{color:var(--red)}
+.h-info{}
+.h-artist{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.h-title{font-size:13px;font-weight:700;color:var(--text);margin-top:2px}
+.h-tags{display:flex;gap:5px;margin-top:4px;align-items:center}
+.h-tag{font-family:'DM Mono',monospace;font-size:8px;padding:1px 6px;border-radius:10px}
+.h-tag-year{background:var(--chassis);color:var(--muted);border:1px solid var(--border)}
+.h-tag-genre{background:var(--teal-dim);color:var(--teal)}
+.h-votes{text-align:right}
+.vote-num{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--red)}
+.vote-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:1px}
+.h-bar-cell{width:120px}
+.h-bar{height:3px;background:var(--hint);border-radius:2px;overflow:hidden}
+.h-fill{height:100%;background:var(--red);border-radius:2px;transition:width .6s ease}
+.h-actions{white-space:nowrap;text-align:right}
+.h-btn{padding:4px 10px;border-radius:4px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;border:1px solid;letter-spacing:.04em;transition:all .15s}
+.h-btn-teal{color:var(--teal);border-color:var(--teal-mid);background:var(--teal-dim)}
+.h-btn-teal:hover{background:var(--teal);color:var(--chassis)}
+.h-btn-red{color:var(--red);border-color:var(--red-dim);background:var(--red-dim)}
+.h-btn-red:hover{background:var(--red);color:#fff}
+.h-btn-red.voted{background:var(--red);color:#fff}
+.empty{grid-column:1/-1;padding:48px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em}
+
+/* ── MODAL ── */
+.overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:32px}
+.overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--chrome);border-radius:12px;width:100%;max-width:520px;overflow:hidden;animation:up .2s ease}
+@keyframes up{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-art{height:180px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;position:relative;background:var(--raised)}
+.m-close{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(0,0,0,.5);border:none;border-radius:50%;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .12s}
+.m-close:hover{color:var(--text)}
+.m-body{padding:20px 24px 24px}
+.m-artist{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.m-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.2}
+.m-tags{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.m-tag{padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.06em}
+.mt-year{background:var(--chassis);color:var(--muted);border:1px solid var(--border)}
+.mt-genre{background:var(--teal-dim);color:var(--teal)}
+.mt-label{background:var(--amber-dim);color:var(--amber)}
+.m-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.m-stat{background:var(--raised);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.m-stat-l{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.m-stat-v{font-size:16px;font-weight:700;color:var(--text)}
+.m-stat-v.teal{color:var(--teal)}
+.m-stat-v.red{color:var(--red)}
+.m-stat-v.amber{color:var(--amber)}
+.m-desc{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:16px;font-family:'DM Mono',monospace;letter-spacing:.02em}
+.m-rate{margin-bottom:16px}
+.m-rate-l{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.m-stars{display:flex;gap:4px}
+.m-star{font-size:20px;cursor:pointer;color:var(--border2);transition:color .1s;line-height:1}
+.m-star.lit{color:var(--amber)}
+.m-actions{display:flex;gap:8px}
+.m-btn{flex:1;padding:9px 16px;border-radius:6px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s;letter-spacing:.06em;text-transform:uppercase}
+.m-btn-primary{background:var(--teal);color:var(--chassis);border-color:var(--teal)}
+.m-btn-primary:hover{background:#00ccb4}
+.m-btn-outline{background:transparent;color:var(--teal);border-color:var(--teal-mid)}
+.m-btn-outline:hover{border-color:var(--teal);background:var(--teal-dim)}
+.m-btn-vote{background:var(--red-dim);color:var(--red);border-color:transparent}
+.m-btn-vote:hover{border-color:var(--red);background:var(--red-dim)}
+.m-btn-vote.voted{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ── VIEWS ── */
+.view{display:none;flex:1;overflow:hidden;flex-direction:column}
+.view.on{display:flex}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="logo">The<span class="logo-teal">Crate</span><span class="logo-red">.</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab on" onclick="showView('browse',this)">Browse</button>
+    <button class="ntab" onclick="showView('hype',this)">Hype Table <span class="hype-pip" id="hype-pip">0</span></button>
+  </div>
+  <div class="nav-leds">
+    <div class="led led-teal" id="spotify-led" title="Spotify"></div>
+    <div class="led led-red"></div>
+    <div class="led led-off"></div>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside>
+    <div>
+      <div class="s-label">Era</div>
+      <div id="era-list" style="display:flex;flex-direction:column;gap:1px;margin-top:8px"></div>
+    </div>
+    <div>
+      <div class="s-label">Subgenre</div>
+      <div id="genre-list" style="display:flex;flex-direction:column;gap:4px;margin-top:8px"></div>
+    </div>
+    <div>
+      <div class="s-label">Sort</div>
+      <div id="sort-list" style="display:flex;flex-direction:column;gap:1px;margin-top:8px"></div>
+    </div>
+  </aside>
+
+  <!-- BROWSE VIEW -->
+  <div class="view on" id="view-browse">
+    <div class="main-bar">
+      <div style="flex:1">
+        <div class="era-title" id="era-title">All Eras — <span>R&B & Soul</span></div>
+        <div class="res-ct" id="res-ct"></div>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Artist or album..." oninput="handleSearch(this.value)">
+      </div>
+    </div>
+    <div class="grid" id="record-grid"></div>
+  </div>
+
+  <!-- HYPE TABLE VIEW -->
+  <div class="view" id="view-hype">
+    <div class="hype-wrap">
+      <div class="hype-header">
+        <div class="hype-title"><span>▲</span> Hype Table</div>
+        <div class="period-tabs">
+          <button class="ptab on" onclick="setPeriod('today',this)">Today</button>
+          <button class="ptab" onclick="setPeriod('week',this)">This week</button>
+          <button class="ptab" onclick="setPeriod('all',this)">All time</button>
+        </div>
+      </div>
+      <table class="hype-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Record</th>
+            <th></th>
+            <th style="text-align:right">Hype</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="hype-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="m-art" id="m-art">
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-artist" id="m-artist"></div>
+      <div class="m-title" id="m-title"></div>
+      <div class="m-tags" id="m-tags"></div>
+      <div class="m-stats" id="m-stats"></div>
+      <div class="m-desc" id="m-desc"></div>
+      <div class="m-rate">
+        <div class="m-rate-l">Your rating</div>
+        <div class="m-stars" id="m-stars"></div>
+      </div>
+      <div class="m-actions" id="m-actions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ERAS = [
+  {id:'all',name:'All eras',from:1950,to:2010,ct:20},
+  {id:'50s',name:'1950s',from:1950,to:1959,ct:1},
+  {id:'60s',name:'1960s',from:1960,to:1969,ct:4},
+  {id:'70s',name:'1970s',from:1970,to:1979,ct:9},
+  {id:'80s',name:'1980s',from:1980,to:1989,ct:1},
+  {id:'90s',name:'1990s',from:1990,to:1999,ct:2},
+  {id:'00s',name:'2000s',from:2000,to:2010,ct:2},
+];
+const GENRES = ['Soul','R&B','Funk','Gospel Soul','Neo-Soul','Quiet Storm','Deep Funk'];
+const SORTS = [
+  {id:'pop',label:'Popularity'},
+  {id:'hype',label:'Most hyped'},
+  {id:'year',label:'Year'},
+  {id:'alpha',label:'Artist A–Z'},
+];
+
+const RECORDS = [
+  {id:1,artist:'Aretha Franklin',title:"I Never Loved a Man the Way I Love You",year:1967,genre:'Soul',label:'Atlantic',pop:94,price:'$38',vinyl:true,emoji:'🟤',color:'#3a1a08',desc:"The Queen's Atlantic debut. Pure fire from start to finish."},
+  {id:2,artist:'Marvin Gaye',title:"What's Going On",year:1971,genre:'Soul',label:'Motown',pop:97,price:'$55',vinyl:true,emoji:'🟫',color:'#1a0e04',desc:"The defining socially conscious soul LP. Essential listening, full stop."},
+  {id:3,artist:'Al Green',title:"Let's Stay Together",year:1972,genre:'Soul',label:'Hi Records',pop:91,price:'$42',vinyl:true,emoji:'🟠',color:'#3a1008',desc:"Tennessee soul at its warmest. The Hi Records magic is undeniable."},
+  {id:4,artist:'James Brown',title:'Live at the Apollo',year:1963,genre:'Funk',label:'King',pop:89,price:'$65',vinyl:true,emoji:'⚫',color:'#0a0a0a',desc:"The record that changed live music. One continuous surge of energy."},
+  {id:5,artist:'Stevie Wonder',title:'Songs in the Key of Life',year:1976,genre:'R&B',label:'Motown',pop:96,price:'$48',vinyl:true,emoji:'🟡',color:'#2a1a00',desc:"A double LP of astonishing ambition. Stevie's absolute masterwork."},
+  {id:6,artist:'Curtis Mayfield',title:'Super Fly',year:1972,genre:'Soul',label:'Curtom',pop:88,price:'$40',vinyl:true,emoji:'🟤',color:'#1e0e04',desc:"The greatest soundtrack LP in soul music. Message plus groove, perfectly balanced."},
+  {id:7,artist:'The Impressions',title:'People Get Ready',year:1965,genre:'Gospel Soul',label:'ABC',pop:82,price:'$35',vinyl:true,emoji:'🟫',color:'#150a04',desc:"Curtis Mayfield's gospel soul blueprint. Still sounds like tomorrow."},
+  {id:8,artist:'Sam Cooke',title:'Night Beat',year:1963,genre:'Soul',label:'RCA Victor',pop:86,price:'$52',vinyl:true,emoji:'⬛',color:'#0a0a10',desc:"Cooke's most intimate album. After midnight, whisky and heartache."},
+  {id:9,artist:'Otis Redding',title:'Otis Blue',year:1965,genre:'Soul',label:'Volt',pop:90,price:'$44',vinyl:true,emoji:'🔵',color:'#041020',desc:"Recorded in 24 hours. The urgency is in every single note."},
+  {id:10,artist:"D'Angelo",title:'Voodoo',year:2000,genre:'Neo-Soul',label:'Virgin',pop:88,price:'$60',vinyl:true,emoji:'🟣',color:'#10041e',desc:"A decade in the making. Defined Neo-Soul's absolute peak moment."},
+  {id:11,artist:'Erykah Badu',title:'Baduizm',year:1997,genre:'Neo-Soul',label:'Kedar',pop:87,price:'$55',vinyl:true,emoji:'🟤',color:'#1a0e04',desc:"The other founding document of Neo-Soul. Warm, strange, essential."},
+  {id:12,artist:'Sly & the Family Stone',title:"There's a Riot Goin' On",year:1971,genre:'Funk',label:'Epic',pop:85,price:'$38',vinyl:true,emoji:'🟢',color:'#041004',desc:"The dark underbelly of the Summer of Love. Murky genius."},
+  {id:13,artist:'Gladys Knight & the Pips',title:'Imagination',year:1973,genre:'Soul',label:'Buddah',pop:80,price:'$28',vinyl:true,emoji:'🟡',color:'#1e0c00',desc:"Midnight Train and so much more. A consistently underrated gem."},
+  {id:14,artist:'Barry White',title:"Can't Get Enough",year:1974,genre:'Quiet Storm',label:'20th Century',pop:83,price:'$30',vinyl:true,emoji:'🟤',color:'#0e0604',desc:"Orchestral soul at maximum warmth. The voice of a generation."},
+  {id:15,artist:'Donny Hathaway',title:'Live',year:1972,genre:'Soul',label:'Atco',pop:91,price:'$70',vinyl:true,emoji:'⚫',color:'#040414',desc:"Possibly the greatest live soul record ever committed to vinyl."},
+  {id:16,artist:'Earth Wind & Fire',title:"That's the Way of the World",year:1975,genre:'R&B',label:'Columbia',pop:86,price:'$32',vinyl:true,emoji:'🟠',color:'#1e0800',desc:"Lush, cosmic, joyful. The peak of their imperial run."},
+  {id:17,artist:'The Temptations',title:'All Directions',year:1972,genre:'R&B',label:'Motown',pop:81,price:'$25',vinyl:false,emoji:'🔵',color:'#04081e',desc:"Norman Whitfield's psychedelic soul production at its absolute wildest."},
+  {id:18,artist:'Isaac Hayes',title:'Hot Buttered Soul',year:1969,genre:'Soul',label:'Enterprise',pop:84,price:'$45',vinyl:true,emoji:'🟤',color:'#100604',desc:"Four tracks, 45 minutes. Revolutionary long-form soul that changed everything."},
+  {id:19,artist:'Minnie Riperton',title:'Perfect Angel',year:1974,genre:'Soul',label:'Epic',pop:78,price:'$38',vinyl:true,emoji:'🩷',color:'#1e0410',desc:"Lovin' You and a dozen other stunning moments. Stevie produced it."},
+  {id:20,artist:'Gil Scott-Heron',title:'Pieces of a Man',year:1971,genre:'Soul',label:'Flying Dutchman',pop:82,price:'$50',vinyl:true,emoji:'⬛',color:'#080808',desc:"The godfather of rap. Poetry over jazz-soul. Genuinely essential."},
+];
+
+// ── STATE ──
+let activeEra='all', activeGenres=new Set(GENRES), activeSort='pop', searchQ='', activePeriod='today', currentId=null;
+// votes[id] = {total, today, week, userVoted, rating}
+let votes = {};
+
+// ── STORAGE ──
+async function loadVotes() {
+  try {
+    const r = await window.storage.get('the-crate-votes', true);
+    if (r && r.value) votes = JSON.parse(r.value);
+  } catch(e) {}
+  RECORDS.forEach(r => {
+    if (!votes[r.id]) votes[r.id] = {total:Math.floor(Math.random()*280+20), today:Math.floor(Math.random()*60+5), week:Math.floor(Math.random()*180+20), userVoted:false, rating:0};
+  });
+  updateHypePip();
+}
+
+async function saveVotes() {
+  try { await window.storage.set('the-crate-votes', JSON.stringify(votes), true); } catch(e) {}
+}
+
+// ── SIDEBAR ──
+function buildSidebar() {
+  // Eras
+  document.getElementById('era-list').innerHTML = ERAS.map(e=>`
+    <div class="era-item ${e.id===activeEra?'on':''}" onclick="setEra('${e.id}','${e.name}')">
+      <div class="era-dot"></div>
+      <span class="era-name">${e.name}</span>
+      <span class="era-ct">${e.ct}</span>
+    </div>`).join('');
+  // Genres
+  document.getElementById('genre-list').innerHTML = GENRES.map(g=>`
+    <label class="g-row">
+      <input type="checkbox" ${activeGenres.has(g)?'checked':''} onchange="toggleGenre('${g}',this.checked)">
+      <div class="cbox"><span class="cmark">✓</span></div>
+      ${g}
+    </label>`).join('');
+  // Sort
+  document.getElementById('sort-list').innerHTML = SORTS.map(s=>`
+    <div class="sort-item ${s.id===activeSort?'on':''}" onclick="setSort('${s.id}')">
+      <span style="color:var(--teal);font-size:10px">${s.id===activeSort?'▶':' '}</span> ${s.label}
+    </div>`).join('');
+}
+
+function setEra(id, name) {
+  activeEra = id;
+  const era = ERAS.find(e=>e.id===id);
+  document.getElementById('era-title').innerHTML = id==='all' ? 'All Eras — <span>R&B & Soul</span>' : `${name} — <span>R&B & Soul</span>`;
+  buildSidebar(); renderGrid();
+}
+function toggleGenre(g, checked) { if(checked) activeGenres.add(g); else activeGenres.delete(g); renderGrid(); }
+function setSort(s) { activeSort=s; buildSidebar(); renderGrid(); }
+function handleSearch(q) { searchQ=q.toLowerCase(); renderGrid(); }
+
+// ── FILTER + SORT ──
+function getFiltered() {
+  const era = ERAS.find(e=>e.id===activeEra);
+  let recs = RECORDS.filter(r=>{
+    const inEra = activeEra==='all' || (r.year>=era.from && r.year<=era.to);
+    const inGenre = activeGenres.has(r.genre);
+    const inSearch = !searchQ || r.artist.toLowerCase().includes(searchQ) || r.title.toLowerCase().includes(searchQ);
+    return inEra && inGenre && inSearch;
+  });
+  if (activeSort==='pop') recs.sort((a,b)=>b.pop-a.pop);
+  else if (activeSort==='hype') recs.sort((a,b)=>(votes[b.id]?.total||0)-(votes[a.id]?.total||0));
+  else if (activeSort==='year') recs.sort((a,b)=>a.year-b.year);
+  else if (activeSort==='alpha') recs.sort((a,b)=>a.artist.localeCompare(b.artist));
+  return recs;
+}
+
+// ── GRID ──
+function renderGrid() {
+  const recs = getFiltered();
+  document.getElementById('res-ct').textContent = `${recs.length} album${recs.length!==1?'s':''} found`;
+  const grid = document.getElementById('record-grid');
+  if (!recs.length) { grid.innerHTML='<div class="empty">No records match your filters</div>'; return; }
+  grid.innerHTML = recs.map(r=>{
+    const v = votes[r.id]||{};
+    const popColor = r.pop>=90?'var(--teal)':r.pop>=80?'var(--amber)':'var(--chrome)';
+    const stars = Array.from({length:5},(_,i)=>`<span class="star${i<(v.rating||0)?' lit':''}" onclick="rateCard(event,${r.id},${i+1})">★</span>`).join('');
+    return `<div class="rcard" onclick="openModal(${r.id})">
+      <div class="art" style="background:${r.color}88">
+        <div>${r.emoji}</div>
+        <div class="art-vinyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="5" fill="currentColor"/></svg></div>
+        <div class="badge-pop">${r.pop}</div>
+        ${r.vinyl?'<div class="badge-vinyl">vinyl</div>':''}
+      </div>
+      <div class="cbody">
+        <div class="c-artist">${r.artist}</div>
+        <div class="c-title">${r.title}</div>
+        <div class="c-meta"><span class="c-year">${r.year}</span><span class="c-genre">${r.genre}</span></div>
+        <div class="pop-bar"><div class="pop-fill" style="width:${r.pop}%;background:${popColor}"></div></div>
+      </div>
+      <div class="vote-row" onclick="event.stopPropagation()">
+        <button class="upvote-btn ${v.userVoted?'voted':''}" onclick="upvote(${r.id})">▲ ${v.total||0}</button>
+        <div class="star-row">${stars}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── UPVOTE ──
+function upvote(id, fromModal=false) {
+  const v = votes[id];
+  if (v.userVoted) return;
+  v.userVoted = true;
+  v.total++;
+  v.today++;
+  v.week++;
+  saveVotes();
+  renderGrid();
+  renderHype();
+  updateHypePip();
+  if (fromModal) renderModal(id);
+}
+
+function rateCard(e, id, stars) {
+  e.stopPropagation();
+  votes[id].rating = stars;
+  saveVotes();
+  renderGrid();
+}
+
+function updateHypePip() {
+  const voted = Object.values(votes).filter(v=>v.userVoted).length;
+  document.getElementById('hype-pip').textContent = voted;
+}
+
+// ── HYPE TABLE ──
+function setPeriod(p, el) {
+  activePeriod = p;
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderHype();
+}
+
+function renderHype() {
+  const key = activePeriod==='today'?'today':activePeriod==='week'?'week':'total';
+  const sorted = [...RECORDS].sort((a,b)=>(votes[b.id]?.[key]||0)-(votes[a.id]?.[key]||0));
+  const max = votes[sorted[0]?.id]?.[key]||1;
+  document.getElementById('hype-tbody').innerHTML = sorted.map((r,i)=>{
+    const v = votes[r.id]||{};
+    const ct = v[key]||0;
+    const pct = Math.round((ct/max)*100);
+    return `<tr class="h-row" onclick="openModal(${r.id})">
+      <td><div class="h-rank ${i<3?'top':''}">${i+1}</div></td>
+      <td class="h-info">
+        <div class="h-artist">${r.artist}</div>
+        <div class="h-title">${r.title}</div>
+        <div class="h-tags">
+          <span class="h-tag h-tag-year">${r.year}</span>
+          <span class="h-tag h-tag-genre">${r.genre}</span>
+          ${r.vinyl?'<span class="h-tag" style="background:var(--teal-dim);color:var(--teal)">vinyl</span>':''}
+        </div>
+      </td>
+      <td class="h-bar-cell">
+        <div class="h-bar"><div class="h-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td class="h-votes">
+        <div class="vote-num">${ct}</div>
+        <div class="vote-sub">hype</div>
+      </td>
+      <td class="h-actions" onclick="event.stopPropagation()">
+        <div style="display:flex;gap:5px;justify-content:flex-end">
+          <button class="h-btn h-btn-teal" onclick="window.open('https://www.discogs.com/search/?q='+encodeURIComponent('${r.artist} ${r.title}')+'&type=release','_blank')">Discogs</button>
+          <button class="h-btn h-btn-teal" onclick="window.open('https://open.spotify.com/search/'+encodeURIComponent('${r.artist} ${r.title}'),'_blank')">Spotify</button>
+          <button class="h-btn h-btn-red ${v.userVoted?'voted':''}" onclick="upvote(${r.id})">▲ ${v.userVoted?'hyped':'hype'}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MODAL ──
+function openModal(id) {
+  currentId = id;
+  renderModal(id);
+  document.getElementById('overlay').classList.add('open');
+}
+function renderModal(id) {
+  const r = RECORDS.find(x=>x.id===id);
+  const v = votes[id]||{};
+  document.getElementById('m-art').style.background = r.color+'cc';
+  document.getElementById('m-art').innerHTML = `<button class="m-close" onclick="closeModal()">✕</button><div style="font-size:4rem">${r.emoji}</div>`;
+  document.getElementById('m-artist').textContent = r.artist;
+  document.getElementById('m-title').textContent = r.title;
+  document.getElementById('m-tags').innerHTML = `
+    <span class="m-tag mt-year">${r.year}</span>
+    <span class="m-tag mt-genre">${r.genre}</span>
+    <span class="m-tag mt-label">${r.label}</span>
+    ${r.vinyl?'<span class="m-tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">on wax</span>':''}`;
+  document.getElementById('m-stats').innerHTML = `
+    <div class="m-stat"><div class="m-stat-l">Popularity</div><div class="m-stat-v teal">${r.pop}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Hype total</div><div class="m-stat-v red">${v.total||0}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Vinyl price</div><div class="m-stat-v amber">${r.vinyl?r.price:'—'}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Your rating</div><div class="m-stat-v" style="color:var(--amber)">${v.rating?'★'.repeat(v.rating):'—'}</div></div>`;
+  document.getElementById('m-desc').textContent = r.desc;
+  document.getElementById('m-stars').innerHTML = Array.from({length:5},(_,i)=>
+    `<span class="m-star ${i<(v.rating||0)?'lit':''}" onclick="modalRate(${id},${i+1})">★</span>`).join('');
+  document.getElementById('m-actions').innerHTML = `
+    <button class="m-btn m-btn-primary" onclick="window.open('https://www.discogs.com/search/?q=${encodeURIComponent(r.artist+' '+r.title)}&type=release','_blank')">Buy on Discogs</button>
+    <button class="m-btn m-btn-outline" onclick="window.open('https://open.spotify.com/search/${encodeURIComponent(r.artist+' '+r.title)}','_blank')">Play on Spotify</button>
+    <button class="m-btn m-btn-vote ${v.userVoted?'voted':''}" onclick="upvote(${id},true)">${v.userVoted?'▲ Hyped':'▲ Hype it'}</button>`;
+}
+
+function modalRate(id, stars) {
+  votes[id].rating = stars;
+  saveVotes();
+  renderModal(id);
+  renderGrid();
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function overlayClick(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+
+// ── VIEWS ──
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('view-'+name).classList.add('on');
+  el.classList.add('on');
+  if (name==='hype') renderHype();
+}
+
+// ── SPOTIFY ──
+let spotifyToken = null;
+let currentlyPlaying = null;
+
+async function getSpotifyToken() {
+  const cached = localStorage.getItem('spotify_app_token');
+  const expiry = parseInt(localStorage.getItem('spotify_app_expiry') || '0');
+  if (cached && Date.now() < expiry - 60000) { spotifyToken = cached; return cached; }
+  try {
+    const res = await fetch('/.netlify/functions/spotify-token');
+    const data = await res.json();
+    if (data.access_token) {
+      spotifyToken = data.access_token;
+      localStorage.setItem('spotify_app_token', data.access_token);
+      localStorage.setItem('spotify_app_expiry', Date.now() + (data.expires_in * 1000));
+      return data.access_token;
+    }
+  } catch(e) { console.log('Spotify token fetch failed:', e.message); }
+  return null;
+}
+
+async function exchangeCode(code) {
+  console.log('[TheCrate] exchangeCode called, hitting:', TOKEN_ENDPOINT);
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, redirect_uri: SPOTIFY_REDIRECT_URI, grant_type: 'authorization_code' }),
+  });
+  const data = await res.json();
+  console.log('[TheCrate] token response status:', res.status, '| has token:', !!data.access_token, '| error:', data.error||'none');
+  if (data.access_token) {
+    localStorage.setItem('spotify_refresh', data.refresh_token);
+    localStorage.setItem('spotify_expiry', expiry);
+    updateAuthUI(true);
+    enrichRecordsFromSpotify();
+    renderGrid();
+  }
+}
+
+function updateAuthUI(connected) {
+  const led = document.getElementById('spotify-led');
+  if (led) led.style.background = connected ? 'var(--teal)' : 'var(--border)';
+}
+
+// ── SPOTIFY DATA ──
+async function spotifySearch(artist, title) {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+  const q = encodeURIComponent(`artist:${artist} album:${title}`);
+  const res = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=album&limit=1`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  return data.albums?.items?.[0] || null;
+}
+
+async function getAlbumTracks(albumId) {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+  const res = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=5`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  return data.items || [];
+}
+
+async function enrichRecordsFromSpotify() {
+  for (const r of RECORDS) {
+    try {
+      const album = await spotifySearch(r.artist, r.title);
+      if (!album) continue;
+      r.spotifyId = album.id;
+      r.albumArt = album.images?.[1]?.url || album.images?.[0]?.url;
+      r.spotifyPop = album.popularity;
+      const tracks = await getAlbumTracks(album.id);
+      r.previewUrl = tracks.find(t => t.preview_url)?.preview_url || null;
+      r.spotifyUrl = album.external_urls?.spotify;
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 120));
+  }
+  renderGrid();
+}
+
+// ── AUDIO PREVIEW ──
+let audioEl = null;
+function playPreview(url, recordId) {
+  if (!audioEl) audioEl = new Audio();
+  if (currentlyPlaying === recordId) {
+    audioEl.pause();
+    currentlyPlaying = null;
+    updatePlayBtn(recordId, false);
+    return;
+  }
+  if (currentlyPlaying) updatePlayBtn(currentlyPlaying, false);
+  audioEl.src = url;
+  audioEl.volume = 0.7;
+  audioEl.play();
+  currentlyPlaying = recordId;
+  updatePlayBtn(recordId, true);
+  audioEl.onended = () => { currentlyPlaying = null; updatePlayBtn(recordId, false); };
+}
+
+function updatePlayBtn(id, playing) {
+  const btn = document.querySelector(`[data-preview-btn="${id}"]`);
+  if (btn) btn.textContent = playing ? '■ stop' : '▶ preview';
+}
+
+// ── OVERRIDE renderModal with Spotify data ──
+const _baseRenderModal = renderModal;
+function renderModal(id) {
+  const r = RECORDS.find(x => x.id === id);
+  const v = votes[id] || {};
+
+  // Album art from Spotify or fallback emoji
+  const artEl = document.getElementById('m-art');
+  if (r.albumArt) {
+    artEl.style.background = '#000';
+    artEl.innerHTML = `<button class="m-close" onclick="closeModal()">✕</button>
+      <img src="${r.albumArt}" style="width:100%;height:100%;object-fit:cover;opacity:.85">`;
+  } else {
+    artEl.style.background = r.color + 'cc';
+    artEl.innerHTML = `<button class="m-close" onclick="closeModal()">✕</button><div style="font-size:4rem">${r.emoji}</div>`;
+  }
+
+  document.getElementById('m-artist').textContent = r.artist;
+  document.getElementById('m-title').textContent = r.title;
+  document.getElementById('m-tags').innerHTML = `
+    <span class="m-tag mt-year">${r.year}</span>
+    <span class="m-tag mt-genre">${r.genre}</span>
+    <span class="m-tag mt-label">${r.label}</span>
+    ${r.vinyl ? '<span class="m-tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">on wax</span>' : ''}
+    ${r.spotifyId ? '<span class="m-tag" style="background:#1db95422;color:#1db954;border:1px solid #1db95444">spotify</span>' : ''}`;
+
+  const livePop = r.spotifyPop != null ? r.spotifyPop : r.pop;
+  document.getElementById('m-stats').innerHTML = `
+    <div class="m-stat"><div class="m-stat-l">Popularity</div><div class="m-stat-v teal">${livePop}${r.spotifyPop != null ? ' <span style="font-size:9px;color:var(--muted)">live</span>' : ''}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Hype total</div><div class="m-stat-v red">${v.total || 0}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Vinyl price</div><div class="m-stat-v amber">${r.vinyl ? r.price : '—'}</div></div>
+    <div class="m-stat"><div class="m-stat-l">Your rating</div><div class="m-stat-v" style="color:var(--amber)">${v.rating ? '★'.repeat(v.rating) : '—'}</div></div>`;
+
+  document.getElementById('m-desc').textContent = r.desc;
+  document.getElementById('m-stars').innerHTML = Array.from({length: 5}, (_, i) =>
+    `<span class="m-star ${i < (v.rating || 0) ? 'lit' : ''}" onclick="modalRate(${id},${i + 1})">★</span>`).join('');
+
+  const discogsUrl = 'https://www.discogs.com/search/?q=' + encodeURIComponent(r.artist + ' ' + r.title) + '&type=release';
+  const spotifyUrl = r.spotifyUrl || ('https://open.spotify.com/search/' + encodeURIComponent(r.artist + ' ' + r.title));
+
+  document.getElementById('m-actions').innerHTML = `
+    <button class="m-btn m-btn-primary" onclick="window.open('${discogsUrl}','_blank')">Buy on Discogs</button>
+    <button class="m-btn m-btn-outline" onclick="window.open('${spotifyUrl}','_blank')">Open Spotify</button>
+    ${r.previewUrl ? `<button class="m-btn m-btn-outline" data-preview-btn="${id}" onclick="playPreview('${r.previewUrl}',${id})" style="color:var(--teal)">▶ preview</button>` : ''}
+    <button class="m-btn m-btn-vote ${v.userVoted ? 'voted' : ''}" onclick="upvote(${id},true)">${v.userVoted ? '▲ Hyped' : '▲ Hype it'}</button>`;
+}
+
+// ── INIT ──
+async function init() {
+  buildSidebar();
+  await loadVotes();
+
+  const token = await getSpotifyToken();
+  if (token) {
+    updateAuthUI(true);
+    enrichRecordsFromSpotify();
+  } else {
+    updateAuthUI(false);
+  }
+
+  renderGrid();
+}
+init();
+</script>
+</body>
+</html>
