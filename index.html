@@ -71,11 +71,14 @@ main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--
 .search-icon{padding:6px 10px;color:var(--muted);font-size:12px}
 
 /* ── GRID ── */
-.grid{flex:1;overflow-y:auto;padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px;align-content:start}
+.grid{flex:1;overflow-y:auto;padding:16px 20px 0;display:flex;flex-direction:column;gap:0}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;align-content:start;padding-bottom:16px}
 .rcard{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--chrome);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .18s;display:flex;flex-direction:column}
 .rcard:hover{border-color:var(--teal);border-top-color:var(--teal);transform:translateY(-2px)}
-.art{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative;background:var(--raised)}
-.art-vinyl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.07}
+.art{width:100%;padding-top:100%;position:relative;background:var(--raised);overflow:hidden}
+.art>*{position:absolute}
+.art-emoji{inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem}
+.art-vinyl{inset:0;display:flex;align-items:center;justify-content:center;opacity:.07}
 .art-vinyl svg{width:70%;height:70%}
 .badge-pop{position:absolute;top:7px;left:7px;background:var(--red);color:#fff;font-family:'DM Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500}
 .badge-vinyl{position:absolute;top:7px;right:7px;background:var(--chassis);color:var(--teal);font-family:'DM Mono',monospace;font-size:8px;padding:2px 5px;border-radius:3px;letter-spacing:.06em;border:1px solid var(--teal-mid)}
@@ -94,6 +97,11 @@ main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--
 .star-row{display:flex;gap:2px}
 .star{font-size:11px;cursor:pointer;color:var(--border2);transition:color .12s;line-height:1}
 .star.lit{color:var(--amber)}
+.pagination{display:flex;align-items:center;justify-content:center;gap:4px;padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;background:var(--chassis)}
+.pg-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;transition:all .15s;min-width:30px}
+.pg-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
+.pg-btn.on{background:var(--teal-dim);border-color:var(--teal);color:var(--teal);font-weight:600}
+.pg-btn:disabled{opacity:.25;cursor:not-allowed}
 
 /* ── HYPE TABLE ── */
 .hype-wrap{flex:1;overflow-y:auto;padding:20px}
@@ -229,7 +237,10 @@ main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--
         <input type="text" placeholder="Artist or album..." oninput="handleSearch(this.value)">
       </div>
     </div>
-    <div class="grid" id="record-grid"></div>
+    <div class="grid">
+      <div class="grid-cards" id="record-grid"></div>
+    </div>
+    <div class="pagination" id="pagination"></div>
   </div>
 
   <!-- HYPE TABLE VIEW -->
@@ -368,7 +379,8 @@ const RECORDS = [
 ];
 
 // ── STATE ──
-let activeEra='all', activeGenres=new Set(GENRES), activeSort='pop', searchQ='', activePeriod='today', currentId=null;
+let activeEra='all', activeGenres=new Set(GENRES), activeSort='pop', searchQ='', activePeriod='today', currentId=null, currentPage=1;
+const PAGE_SIZE = 12;
 // votes[id] = {total, today, week, userVoted, rating}
 let votes = {};
 
@@ -412,14 +424,14 @@ function buildSidebar() {
 }
 
 function setEra(id, name) {
-  activeEra = id;
+  activeEra = id; currentPage = 1;
   const era = ERAS.find(e=>e.id===id);
   document.getElementById('era-title').innerHTML = id==='all' ? 'All Eras — <span>R&B & Soul</span>' : `${name} — <span>R&B & Soul</span>`;
   buildSidebar(); renderGrid();
 }
-function toggleGenre(g, checked) { if(checked) activeGenres.add(g); else activeGenres.delete(g); renderGrid(); }
-function setSort(s) { activeSort=s; buildSidebar(); renderGrid(); }
-function handleSearch(q) { searchQ=q.toLowerCase(); renderGrid(); }
+function toggleGenre(g, checked) { if(checked) activeGenres.add(g); else activeGenres.delete(g); currentPage=1; renderGrid(); }
+function setSort(s) { activeSort=s; currentPage=1; buildSidebar(); renderGrid(); }
+function handleSearch(q) { searchQ=q.toLowerCase(); currentPage=1; renderGrid(); }
 
 // ── FILTER + SORT ──
 function getFiltered() {
@@ -439,8 +451,11 @@ function getFiltered() {
 
 // ── GRID ──
 function renderGrid() {
-  const recs = getFiltered();
-  document.getElementById('res-ct').textContent = `${recs.length} album${recs.length!==1?'s':''} found`;
+  const all = getFiltered();
+  const totalPages = Math.ceil(all.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = 1;
+  const recs = all.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  document.getElementById('res-ct').textContent = `${all.length} album${all.length!==1?'s':''} · page ${currentPage} of ${totalPages}`;
   const grid = document.getElementById('record-grid');
   if (!recs.length) { grid.innerHTML='<div class="empty">No records match your filters</div>'; return; }
   grid.innerHTML = recs.map(r=>{
@@ -450,8 +465,8 @@ function renderGrid() {
     return `<div class="rcard" onclick="openModal(${r.id})">
       <div class="art" style="background:${r.color}88">
         ${r.albumArt
-          ? `<img src="${r.albumArt}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:.9">`
-          : `<div>${r.emoji}</div><div class="art-vinyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="5" fill="currentColor"/></svg></div>`
+          ? `<img src="${r.albumArt}" style="width:100%;height:100%;object-fit:cover;inset:0;opacity:.9">`
+          : `<div class="art-emoji">${r.emoji}</div><div class="art-vinyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="5" fill="currentColor"/></svg></div>`
         }
         <div class="badge-pop" style="position:absolute;z-index:2">${r.spotifyPop||r.pop}</div>
         ${r.vinyl?'<div class="badge-vinyl" style="position:absolute;z-index:2">vinyl</div>':''}
@@ -468,6 +483,23 @@ function renderGrid() {
       </div>
     </div>`;
   }).join('');
+
+  // Pagination bar
+  const pages = Array.from({length:totalPages},(_,i)=>i+1);
+  document.getElementById('pagination').innerHTML = totalPages <= 1 ? '' : `
+    <button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+    ${pages.map(p=>`<button class="pg-btn ${p===currentPage?'on':''}" onclick="goPage(${p})">${p}</button>`).join('')}
+    <button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>
+  `;
+}
+
+function goPage(p) {
+  const all = getFiltered();
+  const totalPages = Math.ceil(all.length / PAGE_SIZE);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderGrid();
+  document.getElementById('record-grid').parentElement.scrollTop = 0;
 }
 
 // ── UPVOTE ──
